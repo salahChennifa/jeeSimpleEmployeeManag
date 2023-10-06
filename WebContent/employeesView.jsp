@@ -241,98 +241,126 @@
 	
 	<script>
 		var app = angular.module('employeeApp', []);
-
-app.controller('employeeCtrl', function ($scope) {
-	$scope.getEmployeeDetails = function (employeeId) {
-		var employeeDetails = '';
-		$.ajax(
-			{
-				url: '/employee-crud-project-0.0.1-SNAPSHOT/get',
-				type: 'POST',
-				data: { "employeeId": employeeId },
-				async: false,
-				success: function (data, textStatus, jqXHR) {
-					employeeDetails = data;
-				},
-				error: function (jqXHR, textStatus, error) {
-					employeeDetails = "";
-					console.log("Eroor in getting employee details from server => " + error);
-				}
-			}
-		);
-		$scope.employee = JSON.parse(employeeDetails);
-		console.log("employee Details ==> " + $scope.employee);
-		return $scope.employee;
-	}
-});
-$(document).ready(function () {
-
-	var checkbox = $('table tbody input[type="checkbox"]');
-	$("#selectAll").click(function () {
-		if (this.checked) {
-			checkbox.each(function () {
-				this.checked = true;
-			});
-		} else {
-			checkbox.each(function () {
-				this.checked = false;
-			});
-		}
-	});
-	checkbox.click(function () {
-		if (!this.checked) {
-			$("#selectAll").prop("checked", false);
-		}
-	});
-
-	$('#deleteBtn').click
-		(
-			function () {
-				var deletedEmployees = [];
-				$("input:checkbox[class='employeeCheck']:checked").each(function () {
-					deletedEmployees.push($(this).val());
-				});
-
-				deletedEmployees = deletedEmployees.join(",")
-				var employeeIds = deletedEmployees.toString();
-				console.log("employeeIds ==> ", employeeIds);
+		var contextPath = '${pageContext.request.contextPath}';
+		var selectOptionRecordsPerPage = '${recordsPerPage}';
+		app.controller('employeeCtrl', function ($scope) {
+			$scope.getEmployeeDetails = function (employeeId) {
+				var employeeDetails = '';
 				$.ajax(
 					{
-						url: '/employee-crud-project-0.0.1-SNAPSHOT/delete',
+						url: contextPath + '/get',
+						type: 'POST',
+						data: { "employeeId": employeeId },
 						async: false,
-						dataType: "html",
-						type: "POST",
-						data: { "employeeIds": employeeIds },
 						success: function (data, textStatus, jqXHR) {
-							if (data != "") {
-								response = data;
-							}
-							else {
-								response = '';
-							}
-							console.log("response ==>", response);
-							window.location.href = '/employee-crud-project-0.0.1-SNAPSHOT/';
+							employeeDetails = data;
 						},
-						error: function (jqXHR, textStatus, errorThrown) {
-							console.log("something went wrong==>", errorThrown);
-							response = '';
-							alert('exception, errorThrown==>' + errorThrown);
+						error: function (jqXHR, textStatus, error) {
+							employeeDetails = "";
+							console.error("Eroor in getting employee details from server => " + error);
 						}
-					});
+					}
+				);
+				$scope.employee = JSON.parse(employeeDetails);
+				
+				return $scope.employee;
 			}
-		);
-});
+		});
+		$(document).ready(function () {
+
+			$("#recordsPerPage option").each(function () {
+				if ($(this).text() == selectOptionRecordsPerPage)
+					$(this).attr("selected", "selected");
+			});
+
+			var checkbox = $('table tbody input[type="checkbox"]');
+			$("#selectAll").click(function () {
+				if (this.checked) {
+					checkbox.each(function () {
+						this.checked = true;
+					});
+				} else {
+					checkbox.each(function () {
+						this.checked = false;
+					});
+				}
+			});
+			checkbox.click(function () {
+				if (!this.checked) {
+					$("#selectAll").prop("checked", false);
+				}
+			});
+
+			$('#deleteBtn').click
+				(
+					function () {
+						var deletedEmployees = [];
+						$("input:checkbox[class='employeeCheck']:checked").each(function () {
+							deletedEmployees.push($(this).val());
+						});
+
+						deletedEmployees = deletedEmployees.join(",")
+						var employeeIds = deletedEmployees.toString();
+						$.ajax(
+							{
+								url: contextPath + '/delete',
+								async: false,
+								dataType: "html",
+								type: "POST",
+								data: { "employeeIds": employeeIds },
+								success: function (data, textStatus, jqXHR) {
+									if (data != "") {
+										response = data;
+									}
+									else {
+										response = '';
+									}
+									
+									window.location.href = contextPath + '/';
+								},
+								error: function (jqXHR, textStatus, errorThrown) {
+									
+									response = '';
+									alert('exception, errorThrown==>' + errorThrown);
+								}
+							});
+					}
+				);
+				$('#recordsPerPage').click
+				(
+					function () {
+						var recordsPerPage = $(this).val();
+						$.ajax(
+							{
+								url: contextPath + '/',
+								async: false,
+								dataType: "html",
+								type: "POST",
+								data: { "recordsPerPage": recordsPerPage },
+								success: function (data, textStatus, jqXHR) {
+									if (data != "") {
+										response = data;
+									}
+									else {
+										response = '';
+									}
+									window.location.href = contextPath + '/';
+								},
+								error: function (jqXHR, textStatus, errorThrown) {
+									response = '';
+									alert('exception, errorThrown==>' + errorThrown);
+								}
+							});
+					}
+				);
+				
+		});
 
 	</script>
 
 </head>
 
 <body ng-app="employeeApp" ng-controller="employeeCtrl">
-	<%
-		// TODO
-		Object dfdt  = request.getAttribute("recordsPerPage");
-        out.print("Welecome " + dfdt);
-    %>
 	<div class="container">
 		<div class="table-wrapper">
 			<div class="table-title">
@@ -399,7 +427,14 @@ $(document).ready(function () {
 
 				<div class="clearfix">
 					<div class="hint-text">
-						Showing <b>${recordsPerPage}</b> out of <b>${noOfRecords}</b> entries
+						Showing 
+						<select name="nbrOfRreocdsPeerPage" id="recordsPerPage">
+							<option value="5"><b>5</b></option>
+							<option value="10"><b>10</b></option>
+							<option value="15"><b>15</b></option>
+							<option value="25"><b>25</b></option>
+						</select>
+						out of <b>${noOfRecords}</b> entries
 					</div>
 					<ul class="pagination">
 						<c:if test="${currentPage != 1}">
@@ -428,7 +463,6 @@ $(document).ready(function () {
 	<jsp:include page="updateEmployeeView.jsp"></jsp:include>
 	
 	<jsp:include page="deleteEmployeeView.jsp"></jsp:include>
-
 </body>
 
 </html>
