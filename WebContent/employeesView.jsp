@@ -8,7 +8,7 @@
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>Servlet, JSP, JDBC and MVC Example</title>
+	<title>Servlet, JSP, JDBC and MVC Application</title>
 
 	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto|Varela+Round">
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
@@ -156,7 +156,6 @@
 		position: relative;
 	}
 	.custom-checkbox input[type="checkbox"] {    
-		opacity: 0;
 		position: absolute;
 		margin: 5px 0 0 3px;
 		z-index: 9;
@@ -170,8 +169,6 @@
 		margin-right: 10px;
 		display: inline-block;
 		vertical-align: text-top;
-		background: white;
-		border: 1px solid #bbb;
 		border-radius: 2px;
 		box-sizing: border-box;
 		z-index: 2;
@@ -264,6 +261,18 @@
 				$scope.employee = JSON.parse(employeeDetails);
 				
 				return $scope.employee;
+			}
+			$scope.deleteEmployeeById = function (employeeId) {
+				var employeeIds = employeeId;
+				console.log("employeeIds", employeeIds);
+				$.ajax(
+					{
+						url: contextPath + '/delete',
+						async: false,
+						dataType: "html",
+						type: "POST",
+						data: { "employeeIds": employeeIds },
+					});
 			}
 		});
 		$(document).ready(function () {
@@ -417,7 +426,7 @@
 										data-toggle="tooltip" title="Edit">&#xE254;</i>
 								</a>
 								<a href="#deleteEmployeeModal" class="delete" data-toggle="modal">
-									<i class="material-icons" data-toggle="tooltip" title="Delete">&#xE872;</i>
+									<i class="material-icons" ng-click="deleteEmployeeById('${employee.id}')" data-toggle="tooltip" title="Delete">&#xE872;</i>
 								</a>
 							</td>
 						</tr>
